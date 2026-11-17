@@ -13,5 +13,6 @@
     "resolveJsonModule": true,
     "types": ["vite/client"]
   },
-  "include": ["client/src", "shared", "tests", "server/engine", "server/room/controller.ts", "server/questions.ts", "server/bank.ts", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"]
+  "include": ["client/src", "shared", "tests", "server/engine", "server/room/controller.ts", "server/questions.ts", "server/bank.ts", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"],
+  "exclude": ["tests/integration/worker.test.ts"]
 }

@@ -456,9 +456,10 @@ describe('a complete game and rematch', () => {
       await room.send(abby.conn, { type: 'vote', choiceId: truth });
       await room.send(owen.conn, { type: 'vote', choiceId: ballotIdFor(view, fibs[0]!) });
       await room.send(dad.conn, { type: 'vote', choiceId: r % 2 ? ballotIdFor(view, fibs[1]!) : truth });
-      expected[abby.id] += 1000 + 500;
-      if (r % 2) expected[owen.id] += 500;
-      else expected[dad.id] += 1000;
+      const add = (id: string, n: number) => (expected[id] = (expected[id] ?? 0) + n);
+      add(abby.id, 1000 + 500);
+      if (r % 2) add(owen.id, 500);
+      else add(dad.id, 1000);
       await room.runUntilPhase('scoreboard');
       for (const p of tv.state.players) expect(p.score).toBe(expected[p.id]);
       await room.send(host, { type: 'host', action: { kind: 'advance', expect: { phase: 'scoreboard', round: r } } });

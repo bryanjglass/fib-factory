@@ -33,7 +33,7 @@ function toVoting(names = ['Abby', 'Owen', 'Dad']) {
   return t;
 }
 
-const truthId = (s: g.GameState | any) => s.round.ballot.find((e: any) => e.isTruth).id as string;
+const truthId = (s: any) => s.round.ballot.find((e: any) => e.isTruth).id as string;
 const fibOf = (s: any, pid: string) => s.round.ballot.find((e: any) => e.authorIds.includes(pid)).id as string;
 
 describe('lobby & joining', () => {
