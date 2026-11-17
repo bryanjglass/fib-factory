@@ -1,0 +1,3 @@
+# Optional overrides for `wrangler dev` (copy to .dev.vars).
+# Comma-separated origins allowed to create rooms / open sockets. "*" = any.
+ALLOWED_ORIGINS=*
