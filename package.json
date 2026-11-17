@@ -1,0 +1,42 @@
+{
+  "name": "fib-factory",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Fib Factory — a multiplayer family bluffing party game",
+  "scripts": {
+    "dev": "concurrently -k -n server,client -c magenta,cyan \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:client": "vite",
+    "dev:server": "wrangler dev --port 8787 --ip 0.0.0.0",
+    "build": "npm run typecheck && vite build",
+    "build:client": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p server/tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test --trace off",
+    "test:all": "npm run typecheck && npm test && npm run test:e2e",
+    "deploy:server": "wrangler deploy"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261117.1",
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "concurrently": "^9.2.5",
+    "tailwindcss": "^4.3.5",
+    "typescript": "5.8",
+    "vite": "^6.4.6",
+    "vitest": "^3.2.7",
+    "wrangler": "^4.164.0"
+  }
+}

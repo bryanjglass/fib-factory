@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fib-factory",
+  "main": "server/index.ts",
+  "compatibility_date": "2025-09-01",
+  "observability": { "enabled": true },
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "FibRoom" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["FibRoom"] }],
+  "vars": {
+    // Comma-separated list of origins allowed to create rooms / open sockets.
+    // "*" allows any origin. In production set it to your GitHub Pages origin,
+    // e.g. "https://your-name.github.io".
+    "ALLOWED_ORIGINS": "*"
+  }
+}
