@@ -489,6 +489,62 @@ describe('a complete game and rematch', () => {
   });
 });
 
+describe('hands-free play', () => {
+  it('after Start, the game reaches game over with no further host input', async () => {
+    const { host, tv, abby, owen, dad, players } = await lobbyWithThree();
+    await room.send(host, { type: 'host', action: { kind: 'updateSettings', settings: { questionCount: 5 } } });
+    await room.send(host, { type: 'host', action: { kind: 'start' } });
+    const hostMessagesAfterStart = host.messages.length;
+    await room.drop(host); // the host can even walk away
+
+    for (let r = 1; r <= 5; r++) {
+      await room.runUntilPhase('submission');
+      const fibs = players.map((p, i) => `auto ${r} fib ${i}`);
+      for (const [i, p] of players.entries()) await room.send(p.conn, { type: 'submitFib', text: fibs[i] });
+      const truth = truthIdFor(abby.conn.state, fibs);
+      await room.send(abby.conn, { type: 'vote', choiceId: truth });
+      await room.send(owen.conn, { type: 'vote', choiceId: ballotIdFor(abby.conn.state, fibs[0]!) });
+      await room.send(dad.conn, { type: 'vote', choiceId: truth });
+      await room.runUntilPhase('scoreboard');
+      expect(tv.state.timer?.durationMs).toBe(TIMING.scoreboardMs);
+    }
+    await room.runUntilPhase('gameOver');
+    expect(host.messages.length).toBe(hostMessagesAfterStart);
+    expect(tv.state.standings.map((s) => [s.playerId, s.score])).toEqual([
+      [abby.id, 7500],
+      [dad.id, 5000],
+      [owen.id, 0],
+    ]);
+    expect(room.storage.data!.history).toHaveLength(5);
+  });
+
+  it('even with nobody acting at all, timers carry the game to the end', async () => {
+    const { host } = await lobbyWithThree();
+    await room.send(host, { type: 'host', action: { kind: 'updateSettings', settings: { questionCount: 5 } } });
+    await room.send(host, { type: 'host', action: { kind: 'start' } });
+    for (const c of room.conns) await room.drop(c);
+    await room.runUntilPhase('gameOver', 100);
+    expect(room.storage.data!.players.every((p) => p.score === 0)).toBe(true);
+  });
+
+  it('host pause on the scoreboard holds the game until resumed', async () => {
+    const { host, tv, players } = await lobbyWithThree();
+    await room.send(host, { type: 'host', action: { kind: 'start' } });
+    await room.runUntilPhase('voting');
+    const ballot = players[0]!.conn.state.ballot!;
+    for (const p of players) await room.send(p.conn, { type: 'vote', choiceId: ballot[0]!.id });
+    await room.runUntilPhase('scoreboard');
+    await room.send(host, { type: 'host', action: { kind: 'pause' } });
+    expect(tv.state.paused).toBe(true);
+    await room.advanceTime(10 * 60_000);
+    expect(room.storage.data!.phase).toBe('scoreboard');
+    await room.send(host, { type: 'host', action: { kind: 'resume' } });
+    await room.advanceTime(TIMING.scoreboardMs);
+    expect(room.storage.data!.phase).toBe('question');
+    expect(tv.state.round).toBe(2);
+  });
+});
+
 describe('question intro', () => {
   it('lasts the configured intro time before submissions open', async () => {
     const { host } = await lobbyWithThree();

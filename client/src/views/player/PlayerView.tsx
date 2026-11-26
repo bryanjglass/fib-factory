@@ -423,8 +423,11 @@ function MyStanding({ view, me }: { view: GameView; me: MeView }) {
       {row.delta > 0 && <div className="text-mint text-xl">+{row.delta.toLocaleString()} this round</div>}
       {moved > 0 && <div className="text-pink">Up {moved} place{moved > 1 ? 's' : ''}!</div>}
       <p className="mt-4 text-cream/70">
-        {view.round >= view.totalRounds ? 'Final results coming up…' : 'Next question coming up…'}
+        {view.round >= view.totalRounds ? 'Final results in…' : 'Next question in…'}
       </p>
+      <div className="w-64 mt-1">
+        <TimerBar timer={view.timer} />
+      </div>
     </Centered>
   );
 }

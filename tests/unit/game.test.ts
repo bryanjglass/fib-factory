@@ -341,6 +341,54 @@ describe('timers', () => {
     expect(g.nextDeadline(t.s)).toBe(t.clock.now + t.s.settings.submitSeconds * 1000);
   });
 
+  it('times the scoreboard and moves on to the next question by itself', () => {
+    const t = toVoting();
+    t.players.forEach((p) => g.castVote(t.s, p.id, truthId(t.s), t.ctx()));
+    while (t.s.phase === 'reveal') {
+      t.clock.now = g.nextDeadline(t.s)!;
+      g.tick(t.s, t.ctx());
+    }
+    expect(t.s.phase).toBe('scoreboard');
+    expect(g.nextDeadline(t.s)).toBe(t.clock.now + TIMING.scoreboardMs);
+    t.clock.now += TIMING.scoreboardMs - 1;
+    expect(g.tick(t.s, t.ctx())).toBe(false);
+    t.clock.now += 1;
+    expect(g.tick(t.s, t.ctx())).toBe(true);
+    expect(t.s.phase).toBe('question');
+    expect(t.s.roundIndex).toBe(1);
+  });
+
+  it('plays every question to game over with timers alone, then stops', () => {
+    const t = gameWithPlayers(['A', 'B', 'C']);
+    g.updateSettings(t.s, { questionCount: 5 });
+    g.startGame(t.s, t.ctx());
+    const phases: string[] = [];
+    for (let i = 0; i < 200 && t.s.phase !== 'gameOver'; i++) {
+      t.clock.now = g.nextDeadline(t.s)!;
+      expect(g.tick(t.s, t.ctx())).toBe(true);
+      phases.push(t.s.phase);
+    }
+    expect(t.s.phase).toBe('gameOver');
+    expect(phases.filter((p) => p === 'question')).toHaveLength(4); // rounds 2-5 (round 1 began at start)
+    expect(phases.filter((p) => p === 'scoreboard')).toHaveLength(5);
+    expect(t.s.history).toHaveLength(5);
+    expect(g.nextDeadline(t.s)).toBeNull(); // game over waits for a rematch
+  });
+
+  it('the host can pause on the scoreboard to linger', () => {
+    const t = toVoting();
+    t.players.forEach((p) => g.castVote(t.s, p.id, truthId(t.s), t.ctx()));
+    while (t.s.phase === 'reveal') g.advance(t.s, t.ctx());
+    g.pause(t.s, t.ctx());
+    t.clock.now += 60 * 60_000;
+    expect(g.tick(t.s, t.ctx())).toBe(false);
+    expect(t.s.phase).toBe('scoreboard');
+    g.resume(t.s, t.ctx());
+    t.clock.now += TIMING.scoreboardMs;
+    g.tick(t.s, t.ctx());
+    expect(t.s.phase).toBe('question');
+  });
+
   it('pauses and resumes with the remaining time preserved', () => {
     const t = toSubmission();
     t.clock.now += 10_000;
