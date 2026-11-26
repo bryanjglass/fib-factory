@@ -4,6 +4,10 @@
  *   lobby → question → submission → voting → reveal → scoreboard ─┬→ question (next round)
  *                                                                  └→ gameOver → (rematch) → lobby
  *
+ * Once the host presses Start, every phase is timed by the server and the game
+ * plays through to gameOver with no further host input. The host may still
+ * skip ahead (`advance`) or pause/resume at any point.
+ *
  * Every exported function mutates the given state in place. Callers (the room
  * controller) run them against a *clone* and only commit on success, so a
  * thrown GameError never leaves a half-applied change behind.
@@ -303,7 +307,7 @@ function advanceReveal(s: GameState, ctx: EngineContext) {
     startRevealStepTimer(s, ctx);
   } else {
     s.phase = 'scoreboard';
-    s.timer = null;
+    startTimer(s, TIMING.scoreboardMs, ctx);
   }
 }
 

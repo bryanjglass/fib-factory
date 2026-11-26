@@ -232,7 +232,7 @@ test('host, TV and three players complete a full game with correct scores, then 
   await desk.close();
 });
 
-test('timers advance the game on their own, and dropped players do not block it', async ({ browser }) => {
+test('timers run the game with no host input, and dropped players do not block it', async ({ browser }) => {
   const desk = await browser.newContext();
   const host = await desk.newPage();
   const code = await createGame(host);
@@ -275,12 +275,18 @@ test('timers advance the game on their own, and dropped players do not block it'
   await expect(tv.locator('[data-testid=tv-score-row][data-player="Ana"]')).toHaveAttribute('data-score', '500');
   await expect(tv.locator('[data-testid=tv-score-row][data-player="Ben"]')).toHaveAttribute('data-score', '0');
 
+  // No host input needed: the scoreboard counts down and the next question starts by itself.
+  await expect(tv.getByTestId('tv-next-countdown')).toContainText('Next question in');
+  await expect(tv.getByTestId('tv')).toHaveAttribute('data-phase', 'question', { timeout: 15_000 });
+  await expect(host.getByTestId('host-phase')).toHaveText('Question intro');
+  await expect(tv.getByTestId('tv-question')).toBeVisible();
+
   // Reduced motion can be switched on from the TV and is remembered after a refresh.
   await tv.getByRole('button', { name: /Motion: on/ }).click();
   await expect(tv.locator('html')).toHaveClass(/reduce-motion/);
   await tv.reload();
   await expect(tv.locator('html')).toHaveClass(/reduce-motion/);
-  await expect(tv.getByTestId('tv')).toHaveAttribute('data-phase', 'scoreboard');
+  await expect(tv.getByTestId('tv')).toBeVisible();
 
   // Another browser cannot take over host controls.
   const intruder = await browser.newContext();

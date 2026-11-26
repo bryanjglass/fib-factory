@@ -40,9 +40,9 @@ function nextLabel(v: GameView): string {
     case 'voting':
       return 'End voting now';
     case 'reveal':
-      return v.reveal && v.reveal.step >= v.reveal.order.length - 1 ? 'Show scores' : 'Next reveal';
+      return v.reveal && v.reveal.step >= v.reveal.order.length - 1 ? 'Show scores now' : 'Next reveal now';
     case 'scoreboard':
-      return v.round >= v.totalRounds ? 'Final results' : 'Next question';
+      return v.round >= v.totalRounds ? 'Final results now' : 'Next question now';
     default:
       return 'Next';
   }
@@ -200,7 +200,17 @@ function HostPanel({ view, send }: { view: GameView; send: (a: HostAction) => Pr
               {!view.canStart.ok && view.canStart.reason && (
                 <p className="text-sun text-center" data-testid="start-hint">{view.canStart.reason}</p>
               )}
+              <p className="text-cream/70 text-sm text-center">
+                Once you press Start, the whole game plays itself. You can pause or skip ahead at any time.
+              </p>
             </>
+          )}
+
+          {inGame && (
+            <p className="text-cream/70 text-sm" data-testid="host-autopilot">
+              ⚙️ The game runs itself from here — every step advances on a timer. Use these buttons only to skip
+              ahead or pause.
+            </p>
           )}
 
           {inGame && (

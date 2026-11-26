@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import type { GameView, PlayerView, StandingRow } from '../../../../shared/protocol';
 import { Avatar } from '../../components/Avatar';
 import { Confetti } from '../../components/Confetti';
+import { useCountdown } from '../../hooks/useCountdown';
 import { useTween } from '../../hooks/useTween';
 import { usePlayerMap } from '../../hooks/usePlayers';
 import { sfx } from '../../lib/sfx';
@@ -66,6 +67,8 @@ export function TvScoreboard({ view }: { view: GameView }) {
   const hl = view.highlights;
   const last = view.round >= view.totalRounds;
   const compact = view.standings.length > 6;
+  const { remainingMs } = useCountdown(view.timer);
+  const secondsLeft = Math.ceil(remainingMs / 1000);
   useEffect(() => sfx.pop(), []);
   return (
     <div className="h-full grid grid-cols-[2fr_1fr] gap-[3rem] px-[4rem] pb-[2.5rem]">
@@ -110,8 +113,9 @@ export function TvScoreboard({ view }: { view: GameView }) {
             <div className="text-[1.6rem] mt-[0.4rem]">Nobody! The fibs were too good.</div>
           )}
         </div>
-        <div className="mt-auto text-center text-[1.6rem] text-cream/70">
-          {last ? 'Final results are next!' : 'Next question coming up…'}
+        <div className="mt-auto text-center text-[1.8rem] text-cream/80" data-testid="tv-next-countdown">
+          {last ? 'Final results in ' : 'Next question in '}
+          <span className="font-display text-sun">{view.timer ? secondsLeft : '…'}</span>
         </div>
       </aside>
     </div>

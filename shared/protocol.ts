@@ -29,6 +29,8 @@ export const TIMING = {
   questionIntroMs: 6000,
   revealFibStepMs: 4500,
   revealTruthStepMs: 7000,
+  /** How long standings stay up before the next question (or the final results). */
+  scoreboardMs: 10000,
 } as const;
 
 export const ROOM_CODE_ALPHABET = 'BCDFGHJKLMNPQRSTVWXZ';

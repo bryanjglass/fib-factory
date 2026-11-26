@@ -18,14 +18,17 @@ the truth and by fooling everyone else with your fib.
    tab to the TV (Chrome menu **⋮ → Cast… → Cast tab**).
 2. **Players (3–10):** scan the QR code on the TV, or go to the site and enter the 4-letter room code.
    Type a name and you're in.
-3. **Host:** pick 5, 7 or 10 questions and the timers, then press **Start game**.
+3. **Host:** pick 5, 7 or 10 questions and the timers, then press **Start game**. From here the game runs
+   itself to the final results. Every step advances on a timer, and the host only needs to touch the
+   controller to **pause** (or to skip ahead).
 4. Each question:
    - **Question:** the TV shows the fact with a blank.
    - **Fib:** everyone types a fake answer on their phone. Make it believable!
    - **Vote:** all the fibs plus the real answer appear in the same shuffled order on every screen.
      Pick the one you think is true. You can't vote for your own fib, and votes are final.
    - **Reveal:** the TV goes through the fibs that fooled people, stamps who wrote them, and then shows the truth.
-   - **Scoreboard:** standings, the round's biggest bluff, and the "truth detectors".
+   - **Scoreboard:** standings, the round's biggest bluff, and the "truth detectors". It counts down for
+     10 seconds, then the next question starts automatically.
 5. After the last question the TV crowns a champion and hands out awards (Master Manipulator, Human Fact
    Checker, Professional Believer, Fib of the Night). The host can start a **rematch** with the same players.
 
@@ -81,11 +84,12 @@ lobby → question → submission → voting → reveal → scoreboard ─┬→
   └────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-- `question` (6 s intro), `submission` and `voting` (host-configured), and each `reveal` step (4.5 s per fib,
-  7 s for the truth) are **timed by the server**. Submission and voting also end early once every *connected*
-  contestant has acted.
-- `scoreboard → next question` is advanced by the host. The host can also skip any timed phase, pause/resume,
-  or return to the lobby.
+- **Every in-game phase is timed by the server**, so after **Start** a game plays to `gameOver` with no host
+  input: `question` (6 s intro), `submission` and `voting` (host-configured), each `reveal` step (4.5 s per
+  fib, 7 s for the truth) and `scoreboard` (10 s). Submission and voting also end early once every *connected*
+  contestant has acted. All durations live in `TIMING` in `shared/protocol.ts`.
+- The host can still **pause/resume** any phase (including the scoreboard, to linger), skip ahead with
+  **Next**, or return to the lobby. `gameOver` waits for the host to start a rematch.
 - Every "Next" press carries the phase/round/step it was meant for (`expect`). A double-click or a retried
   message arriving after the game moved on is rejected (`STALE_ACTION`), so questions can't be skipped by accident.
 - Scoring runs exactly once per round, guarded by a `scored` flag, on entry to `reveal`.
@@ -288,8 +292,9 @@ push and pull request.
   lobby reset, up to the 10-player cap.
 - **The host doesn't play from the controller.** They can join from their phone like anyone else. The host
   controller never shows the answer before the reveal.
-- **Reveal pacing is server-driven** (`revealStep` + alarms), so the TV, the phones and the host stay in step.
-  The host can speed it up with **Next**.
+- **Hands-free after Start.** Reveal steps and the scoreboard are paced by server alarms like every other
+  phase, so the TV, the phones and the host stay in step and the host can join from a phone and just play.
+  Pause is the main host control during a game; **Next** remains available to skip ahead.
 - **Uppercase answers everywhere** so capitalization can't give the real answer away.
 - **Sound** is synthesized with WebAudio (no assets), is optional, and nothing waits on it. Browsers need one
   click on the TV tab to allow audio. **Reduced motion** follows the OS setting by default and can be toggled
